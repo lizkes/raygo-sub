@@ -1,5 +1,6 @@
-use log::info;
 use ntex::web::{self, App, HttpServer};
+use tracing::info;
+use tracing_subscriber::fmt::time::OffsetTime;
 
 mod handlers;
 mod models;
@@ -56,24 +57,36 @@ async fn main() -> std::io::Result<()> {
 
     // 根据配置文件初始化日志系统
     let log_level = match app_config.log_level.to_lowercase().as_str() {
-        "error" => log::LevelFilter::Error,
-        "warn" => log::LevelFilter::Warn,
-        "info" => log::LevelFilter::Info,
-        "debug" => log::LevelFilter::Debug,
-        "trace" => log::LevelFilter::Trace,
+        "error" => tracing::Level::ERROR,
+        "warn" => tracing::Level::WARN,
+        "info" => tracing::Level::INFO,
+        "debug" => tracing::Level::DEBUG,
+        "trace" => tracing::Level::TRACE,
         _ => {
             eprintln!(
                 "⚠️  无效的日志级别: {}，使用默认级别 info",
                 app_config.log_level
             );
-            log::LevelFilter::Info
+            tracing::Level::INFO
         }
     };
 
-    env_logger::Builder::new()
-        .filter_level(log_level)
-        .format_timestamp_millis()
+    // 先初始化tracing subscriber - 使用RFC 3339本地时间戳格式
+    let offset = time::UtcOffset::current_local_offset().expect("无法获取本地时区偏移量");
+    let time_format = time::format_description::parse(
+        "[year]-[month]-[day]T[hour]:[minute]:[second].[subsecond digits:3]",
+    )
+    .expect("时间格式字符串无效");
+    let timer = OffsetTime::new(offset, time_format);
+    tracing_subscriber::fmt()
+        .with_max_level(log_level)
+        .with_timer(timer)
+        .with_ansi(true)
         .init();
+
+    // 初始化log桥接以捕获第三方库日志
+    tracing_log::LogTracer::init_with_filter(tracing_log::log::LevelFilter::Warn)
+        .expect("设置logger失败");
 
     info!("📝 日志级别设置为: {}", app_config.log_level);
     info!("🚀 RayGo-sub 服务器已启动");

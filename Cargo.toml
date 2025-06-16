@@ -16,10 +16,20 @@ tokio = { version = "1.0", features = ["fs"], default-features = false }
 # 压缩
 zstd = { version = "0.13", default-features = false }
 # 日志
+tracing = { version = "0.1", default-features = false }
+tracing-subscriber = { version = "0.3", features = [
+  "fmt",
+  "std",
+  "time",
+  "ansi",
+], default-features = false }
+tracing-log = { version = "0.2", features = [
+  "log-tracer",
+  "std",
+], default-features = false }
 log = { version = "0.4", default-features = false }
-env_logger = { version = "0.11", features = [
-  "humantime",
-  "auto-color",
+time = { version = "0.3", features = [
+  "local-offset",
 ], default-features = false }
 # UUID - 只需要v4生成功能
 uuid = { version = "1.0", features = ["v4"], default-features = false }

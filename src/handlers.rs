@@ -5,10 +5,10 @@ use chacha20poly1305::{
     ChaCha20Poly1305, Key, Nonce,
     aead::{Aead, KeyInit},
 };
-use log::{debug, error, info, warn};
 use ntex::web::types::{Query, State};
 use ntex::web::{HttpRequest, HttpResponse, Responder};
 use serde::Deserialize;
+use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 // 查询参数结构体
