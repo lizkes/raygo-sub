@@ -289,6 +289,7 @@ docker-compose restart
 docker-compose logs -f
 ```
 
-## 许可证
+## 授权许可证 (License)
 
-MIT License 
+This project is licensed under the terms of the **GNU General Public License v3.0**.
+For more details, please see the [LICENSE](LICENSE) file.
