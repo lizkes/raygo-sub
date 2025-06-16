@@ -1,0 +1,607 @@
+# 参考文档
+# https://wiki.metacubex.one/config
+
+# =========================================================================================
+#
+#   这是一个按照原始配置文件生成的脱敏模板。
+#   使用时，请定位到 `proxies:` 部分，将占位符替换为您的真实节点信息。
+#
+# =========================================================================================
+
+
+#########################################全局配置#########################################
+# 允许局域网的连接（可用来共享代理）
+allow-lan: false
+# 仅在将allow-lan设置为true时适用
+# "*": 绑定所有IP地址
+# 192.168.122.11: 绑定单个IPv4地址
+# "[aaaa::a8aa:ff:fe09:57d8]": 绑定单个IPv6地址
+# bind-address: "*"
+
+# 用户验证
+# http(s)/socks/mixed代理的用户验证
+# authentication:
+#  - "user1:pass1"
+#  - "user2:pass2"
+# 设置允许跳过验证的 IP 段
+# skip-auth-prefixes:
+# - 127.0.0.1/8
+# - ::1/128
+
+# 规则模式：rule（规则） / global（全局代理）/ direct（全局直连）
+mode: rule
+
+# 设置日志输出级别 silent / error / warning / info / debug
+# silent 静默，不输出
+# error 仅输出发生错误至无法使用的日志
+# warning 输出发生错误但不影响运行的日志，以及 error 级别内容
+# info 输出一般运行的内容，以及 error 和 warning 级别的日志
+# debug 尽可能的输出运行中所有的信息
+log-level: info
+
+# 是否允许内核接受 IPv6 流量
+ipv6: false
+
+# TCP Keep Alive 设置
+# 修改此项以减少移动设备耗电问题
+# TCP Keep Alive 包的间隔，单位为秒
+# keep-alive-interval: 60
+# TCP Keep Alive 的最大空闲时间
+# keep-alive-idle: 60
+# 禁用 TCP Keep Alive，在 Android 默认为 true
+# disable-keep-alive: false
+
+# 进程匹配模式
+# 控制是否让 Clash 去匹配进程
+# always 开启，强制匹配所有进程
+# strict 默认，由 Clash 判断是否开启
+# off 不匹配进程，推荐在路由器上使用此模式
+# find-process-mode: strict
+
+# 外部控制 (API)
+# 外部控制器，可以使用 RESTful API 来控制你的 Clash 内核
+# API 监听地址，你可以将 127.0.0.1 修改为 0.0.0.0 来监听所有 IP
+# external-controller: '127.0.0.1:9097'
+# API CORS 标头配置
+# external-controller-cors:
+#   allow-origins:
+#     - '*'
+#   allow-private-network: true
+# Unix socket API 监听地址
+# 从Unix socket访问api接口不会验证secret， 如果开启请自行保证安全问题
+# external-controller-unix: mihomo.sock
+# Windows namedpipe API 监听地址
+# 从Windows namedpipe访问api接口不会验证secret， 如果开启请自行保证安全问题
+# external-controller-pipe: \\.\pipe\mihomo
+# HTTPS-API 监听地址，需要配置 tls 部分证书和其私钥配置，使用 TLS 也必须填写 external-controller
+# external-controller-tls: 127.0.0.1:9443
+# 在 RESTful API 端口上开启 DOH 服务器
+# 该URL不会验证secret， 如果开启请自行保证安全问题
+# external-doh-server: /dns-query
+# API 的访问密钥
+# secret: ""
+
+# 外部用户界面
+# 可以将静态网页资源 (比如 Clash-dashboard) 运行在 Clash API, 路径为 API 地址/ui
+# 可以为绝对路径，或者 Clash 工作目录的相对路径
+# external-ui: /path/to/ui/folder
+# 自定义外部用户界面名字
+# 非必须，更新时会更新到指定文件夹，不配置则直接更新到 external-ui 目录
+# external-ui-name: xd      #  合并为 external-ui/xd
+# 自定义外部用户界面下载地址
+# external-ui-url: "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip" #从 GitHub Pages 分支获取
+
+
+# 缓存
+profile:
+  # 储存 API 对策略组的选择，以供下次启动时使用
+  store-selected: true
+  # 储存 fakeip 映射表，域名再次发生连接时，使用原有映射地址
+  store-fake-ip: true
+
+#开启统一延迟时，会计算 RTT，以消除连接握手等带来的不同类型节点的延迟差异
+unified-delay: true
+
+# 启用 TCP 并发连接，将会使用 dns 解析出的所有 IP 地址进行连接，使用第一个成功的连接
+tcp-concurrent: true
+
+# mihomo 的流量出站接口
+# interface-name: en0
+
+# 为 Linux 下的出站连接提供默认流量标记
+# routing-mark: 6666
+
+# tls配置，目前仅用于 API 的 https
+# tls:
+#   certificate: string # 证书 PEM 格式，或者 证书的路径
+#   private-key: string # 证书对应的私钥 PEM 格式，或者私钥路径
+#   # ECH 密钥，如果填写则会启用 ECH
+#   ech-key: |-
+#     -----BEGIN ECH KEYS-----
+#     ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+#     madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+#     dC5jb20AAA==
+#     -----END ECH KEYS-----
+
+# 全局客户端指纹，优先低于 proxy 内的 client-fingerprint。
+# 目前支持开启 TLS 传输的 TCP/grpc/WS/HTTP , 支持协议有 VLESS,Vmess 和 trojan.
+# 可选值：chrome, firefox, safari, ios, android, edge, 360, qq, random, 若选择 random, 则按 Cloudflare Radar 数据按概率生成一个现代浏览器指纹。
+# global-client-fingerprint: random
+
+# GEOIP 数据模式
+# 更改 geoip 使用文件，mmdb 或者 dat，可选 true/false,true为 dat，此项有默认值 false
+geodata-mode: false
+# GEO 文件加载模式
+# standard：标准加载器
+# memconservative：专为内存受限 (小内存) 设备优化的加载器 (默认值)
+geodata-loader: standard
+# 自动更新 GEO
+geo-auto-update: true
+# 更新间隔，单位为小时
+geo-update-interval: 24
+# 自定 GEO 下载地址
+# 文件内容说明https://github.com/MetaCubeX/meta-rules-dat
+geox-url:
+# geoip: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip-lite.dat"
+  geosite: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country-lite.mmdb"
+#  asn: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb"
+
+# 自定义外部资源下载时使用的的 UA，默认为 clash.meta
+# global-ua: clash.meta
+
+# 外部资源下载的 ETag 支持，默认为 true
+# etag-support: true
+#########################################全局配置#########################################
+
+#########################################DNS配置#########################################
+dns:
+  # 是否启用，如为 false，则使用系统 DNS 解析
+  enable: true
+  # lru: Least Recently Used, 默认值
+  # arc: Adaptive Replacement Cache
+  cache-algorithm: arc
+  # DOH 优先使用 http/3
+  prefer-h3: false
+  # 是否回应配置中的 hosts，默认 true
+  use-hosts: false
+  # 是否查询系统 hosts，默认 true
+  use-system-hosts: false
+  # dns 连接遵守路由规则，需配置 proxy-server-nameserver
+  # 强烈不建议和 prefer-h3 一起使用
+  respect-rules: false
+  # DNS 服务监听，支持 udp, tcp
+  listen: 0.0.0.0:53
+  # 是否解析 IPV6, 如为 false, 则回应 AAAA 的空解析
+  ipv6: false
+  # mihomo 的 DNS 处理模式，可选值 fake-ip/redir-host，默认redir-host
+  # 必须为 IP, 可为加密 DNS
+  enhanced-mode: fake-ip
+  # fakeip 下的 IP 段设置，tun 的默认 IPV4 地址 也使用此值作为参考
+  fake-ip-range: 198.18.0.1/16
+  # 可选 blacklist/whitelist
+  # 默认blacklist，whitelist 即只有匹配成功才返回 fake-ip
+  fake-ip-filter-mode: blacklist
+  # fakeip 过滤，以下地址不会下发 fakeip 映射用于连接
+  fake-ip-filter:
+    - 'geosite:private'
+    - 'geosite:connectivity-check'
+  # 指定域名查询的解析服务器，可使用 geosite, 优先于 nameserver/fallback 查询
+  # 键支持域名通配，值支持字符串/数组
+  # nameserver-policy:
+  #   '+.arpa': '10.0.0.1'
+  #   'rule-set:cn':
+  #   - https://doh.pub/dns-query
+  #   - https://dns.alidns.com/dns-query
+  # 默认 DNS, 用于解析 DNS 服务器 的域名
+  default-nameserver:
+    - 223.5.5.5
+    - 114.114.114.114
+  # 代理节点域名解析服务器，仅用于解析代理节点的域名，如果不填则遵循 nameserver-policy、nameserver 和 fallback 的配置
+  proxy-server-nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+  # 用于 direct 出口域名解析的 DNS 服务器，如果不填则遵循 nameserver-policy、nameserver 和 fallback 的配置
+  direct-nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+    - https://doh.360.cn/dns-query
+  # 是否遵循 nameserver-policy，默认为不遵守，仅当 direct-nameserver 不为空时生效
+  direct-nameserver-follow-policy: false
+  # 用来解析没有匹配到任何「域名规则」的域名，通常是国外域名，建议使用国外 DoH 防止污染
+  # 但这个解析结果并不会用来发起连接，所以为了追求速度不使用 DoH 或直接使用国内 DNS 也行。
+  nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+    - https://doh.360.cn/dns-query
+  # 后备域名解析服务器，一般情况下使用境外 DNS, 保证结果可信
+  # 配置 fallback后默认启用 fallback-filter,geoip-code为 cn
+  fallback:
+    - https://cloudflare-dns.com/dns-query
+    - https://dns.google/dns-query
+  # 后备域名解析服务器筛选，满足条件的将使用 fallback结果或只使用 fallback解析
+  fallback-filter:
+    # 是否使用 geoip 筛选，默认 true
+    geoip: true
+    # 可选值为 国家缩写，默认值为 CN
+    # 除了 geoip-code 配置的国家 IP, 其他的 IP 结果会被视为污染
+    # geoip-code 配置的国家的结果会直接采用，否则将采用 fallback结果
+    geoip-code: CN
+    # 书写内容为 IP/掩码
+    # 这些网段的结果会被视为污染，nameserver解析出这些结果时将会采用 fallback的解析结果
+    ipcidr:
+      - 240.0.0.0/4
+      - 0.0.0.0/32
+    # 可选值为对于的 geosite 内包含的集合
+    # geosite 列表的内容被视为已污染，匹配到 geosite 的域名，将只使用 fallback解析，不去使用 nameserver
+    # geosite:
+    #   - geolocation-!cn
+    #   - geolocation-cn@!cn
+    # 这些域名被视为已污染，匹配到这些域名，会直接使用 fallback解析，不去使用 nameserver
+    domain:
+      - '+.google.com'
+      - '+.facebook.com'
+      - '+.youtube.com'
+
+# 键支持域名通配 值支持字符串/数组，域名重定向不支持数组
+# 完整的的域名优先级高于使用通配符的域名，例如：foo.example.com > *.example.com > .example.com
+#hosts:
+#  '*.clash.dev': 127.0.0.1
+#  'alpha.clash.dev': '::1'
+#########################################DNS配置#########################################
+
+#########################################入站配置#########################################
+# 混合端口 HTTP和SOCKS5用一个端口
+mixed-port: 7897
+# HTTP 代理端口
+# port: 7898
+# SOCKS5 代理端口
+# socks-port: 7899
+# redirect 透明代理端口，仅能代理 TCP 流量
+# redir-port: 7897
+# tproxy 透明代理端口，可代理 TCP 与 UDP 流量
+# tproxy-port: 7894
+
+# tun:
+  # 启用 tun
+  # enable: false
+  # tun 模式堆栈，如无使用问题，建议使用 mixed栈，默认 gvisor
+  # 可用值： system/gvisor/mixed
+  # system 使用系统协议栈，可以提供更稳定/全面的 tun 体验，且占用相对其他堆栈更低
+  # gvisor 通过在用户空间中实现网络协议栈，可以提供更高的安全性和隔离性，同时可以避免操作系统内核和用户空间之间的切换，从而在特定情况下具有更好的网络处理性能
+  # mixed 混合堆栈，tcp 使用 system栈，udp 使用 gvisor栈，使用体验可能相对更好
+  # stack: gvisor
+  # 仅支持 Linux，自动配置 iptables/nftables 以重定向 TCP 连接，需要auto-route已启用
+  # 在 Android 中：仅转发本地 IPv4 连接。要通过热点或中继共享您的 VPN 连接，请使用 VPNHotspot。
+  # 在 Linux 中：带有 auto-route 的 auto-redirect 现在可以在路由器上按预期工作，无需干预。
+  # auto-redirect: true
+  # 自动选择流量出口接口，多出口网卡同时连接的设备建议手动指定出口网卡
+  # auto-detect-interface: true
+  # dns 劫持，将匹配到的连接导入内部 dns 模块，不书写协议则为 udp://
+  # dns-hijack:
+  # - any:53
+  # 指定 tun 网卡名称，MacOS 设备只能使用 utun 开头的网卡名
+  # device: utun0
+  # 启用通用分段卸载，仅支持 Linux
+  # gso: true
+  # 数据块的最大长度
+  # gso-max-size: 65536
+  # UDP NAT 过期时间，以秒为单位，默认为 300(5 分钟)
+  # udp-timeout: 300
+  # 自动设置全局路由，可以自动将全局流量路由进入 tun 网卡。
+  # auto-route: true
+  # 最大传输单元，会影响极限状态下的速率，一般用户默认即可。
+  # mtu: 9000
+  # 启用 auto-route 时执行严格的路由规则
+  # 在 Linux 中: 让不支持的网络无法到达，将所有连接路由到 tun
+  # 它可以防止地址泄漏，并使 DNS 劫持在 Android 上工作。
+  # 在 Windows 中: 添加防火墙规则以阻止 Windows 的 普通多宿主 DNS 解析行为 造成的 DNS 泄露
+  # 它可能会使某些应用程序（如 VirtualBox）在某些情况下无法正常工作。
+  # strict-route: true
+  # auto-route 生成的 iproute2 路由表索引，默认使用 2022
+  # iproute2-table-index: 2022
+  # auto-route 生成的 iproute2 规则起始索引，默认使用 9000
+  # iproute2-rule-index: 9000
+  # 启用独立于端点的 NAT，性能可能会略有下降，所以不建议在不需要的时候开启。
+  # endpoint-independent-nat: false
+  # 将指定规则集中的目标 IP CIDR 规则添加到防火墙，不匹配的流量将绕过路由
+  # 仅支持 Linux，且需要 nftables 以及auto-route 和 auto-redirect 已启用。
+  # route-address-set:
+  #  - ruleset-1
+  # 将指定规则集中的目标 IP CIDR 规则添加到防火墙，匹配的流量将绕过路由
+  # 仅支持 Linux，且需要 nftables 以及auto-route 和 auto-redirect 已启用。
+  # route-exclude-address-set:
+  #   - ruleset-2
+  # 启用 auto-route时路由自定义路由网段而不是默认路由，一般无需配置。
+  # route-address:
+  #   - 0.0.0.0/1
+  #   - 128.0.0.0/1
+  #   - "::/1"
+  #   - "8000::/1"
+  # 启用 auto-route 时排除自定义网段
+  # route-exclude-address:
+  # - 192.168.0.0/16
+  # - fc00::/7
+  # 限制被路由的接口，默认不限制，与 exclude-interface 冲突，不可一起配置
+  # include-interface:
+  # - eth0
+  # 排除路由的接口，与 include-interface 冲突，不可一起配置
+  # exclude-interface:
+  # - eth1
+  # 包含的用户，使其被 Tun 路由流量，未被配置的用户不会被 Tun 路由流量，默认不限制
+  # include-uid:
+  # - 0
+  # 包含的用户范围，使其被 Tun 路由流量，未被配置的用户不会被 Tun 路由流量
+  # include-uid-range:
+  # - 1000:9999
+  # 排除用户，使其避免被 Tun 路由流量
+  # exclude-uid:
+  # - 1000
+  # 排除用户范围，使其避免被 Tun 路由流量
+  # exclude-uid-range:
+  # - 1000:9999
+  # 包含的 Android 用户，使其被 Tun 路由流量，未被配置的用户不会被 Tun 路由流量
+  # include-android-user:
+  # - 0
+  # - 10
+  # 包含的 Android 应用包名，使其被 Tun 路由流量，未配置的应用包不会被 Tun 路由流量
+  # include-package:
+  # - com.android.chrome
+  # 排除 Android 应用包名，使其避免被 Tun 路由流量
+  # exclude-package:
+  # - com.android.captiveportallogin
+#########################################入站配置#########################################
+
+#########################################节点配置#########################################
+proxies:
+# <-- !!! 注意：以下信息已被脱敏，请替换为您自己的真实节点信息 !!! -->
+- name: 🇺🇸 美国节点1
+  server: your-server-address.com
+  servername: your-server-address.com
+  port: 443
+  type: vless
+  uuid: 00000000-0000-0000-0000-000000000000
+  network: tcp
+  tfo: true
+  tls: true
+  alpn:
+    - h2,http/1.1
+  flow: xtls-rprx-vision
+  skip-cert-verify: true
+  client-fingerprint: random
+- name: 🇺🇸 美国节点2
+  server: your-server-address.com
+  servername: your-server-address.com
+  port: 443
+  type: vless
+  uuid: 00000000-0000-0000-0000-000000000000
+  network: tcp
+  tfo: true
+  tls: true
+  alpn:
+    - h2,http/1.1
+  flow: xtls-rprx-vision
+  skip-cert-verify: true
+  client-fingerprint: random
+- name: 🇩🇪 德国节点
+  server: your-server-address.com
+  servername: your-server-address.com
+  port: 443
+  type: vless
+  uuid: 00000000-0000-0000-0000-000000000000
+  network: tcp
+  tfo: true
+  tls: true
+  alpn:
+    - h2,http/1.1
+  flow: xtls-rprx-vision
+  skip-cert-verify: true
+  client-fingerprint: random
+- name: 🇯🇵 日本节点
+  server: your-server-address.com
+  servername: your-server-address.com
+  port: 443
+  type: vless
+  uuid: 00000000-0000-0000-0000-000000000000
+  network: tcp
+  tfo: true
+  tls: true
+  alpn:
+    - h2,http/1.1
+  flow: xtls-rprx-vision
+  skip-cert-verify: true
+  client-fingerprint: random
+- name: 🇭🇰 香港节点
+  server: your-server-address.com
+  servername: your-server-address.com
+  port: 443
+  type: vless
+  uuid: 00000000-0000-0000-0000-000000000000
+  network: tcp
+  tfo: true
+  tls: true
+  alpn:
+    - h2,http/1.1
+  flow: xtls-rprx-vision
+  skip-cert-verify: true
+  client-fingerprint: random
+- name: 🇰🇷 韩国节点
+  server: your-server-address.com
+  servername: your-server-address.com
+  port: 443
+  type: vless
+  uuid: 00000000-0000-0000-0000-000000000000
+  network: tcp
+  tfo: true
+  tls: true
+  alpn:
+    - h2,http/1.1
+  flow: xtls-rprx-vision
+  skip-cert-verify: true
+  client-fingerprint: random
+
+proxy-groups:
+  - name: 🚀 代理
+    type: select
+    disable-udp: true
+    proxies:
+      - ⚡ 低延迟
+      - 👆🏻 指定
+      - DIRECT
+  - name: ⚡ 低延迟
+    type: url-test
+    url: https://i.ytimg.com/generate_204
+    interval: 300
+    lazy: false
+    tolerance: 100
+    timeout: 3000
+    max-failed-times: 5
+    proxies:
+      - 🇭🇰 香港节点
+      - 🇯🇵 日本节点
+      - 🇰🇷 韩国节点
+      - 🇺🇸 美国节点1
+      - 🇺🇸 美国节点2
+      - 🇩🇪 德国节点
+  - name: 👆🏻 指定
+    type: select
+    proxies:
+      - 🇭🇰 香港节点
+      - 🇯🇵 日本节点
+      - 🇰🇷 韩国节点
+      - 🇺🇸 美国节点1
+      - 🇺🇸 美国节点2
+      - 🇩🇪 德国节点
+  - name: 🎯 国内
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 代理
+      - 👆🏻 指定
+      - REJECT
+  - name: 🚫 广告
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 代理
+      - 👆🏻 指定
+      - REJECT
+  - name: 🌐 其他
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 代理
+      - 👆🏻 指定
+      - REJECT
+# <-- !!! 注意：以上信息已被脱敏，请替换为您自己的真实节点信息 !!! -->
+rules:
+  - GEOIP,private,DIRECT,no-resolve
+  - GEOSITE,private,DIRECT
+  - DOMAIN-SUFFIX,kkgithub.com,🎯 国内
+  - DOMAIN-SUFFIX,bgithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,dgithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,fgithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,hgithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,igithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,jgithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,lgithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,4git.xyz,🎯 国内
+  - DOMAIN-SUFFIX,5git.xyz,🎯 国内
+  - DOMAIN-SUFFIX,6git.xyz,🎯 国内
+  - DOMAIN-SUFFIX,mgithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,ngithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,ogithub.xyz,🎯 国内
+  - DOMAIN-SUFFIX,pgithub.xyz,🎯 国内
+  - DOMAIN,hub.whtrys.space,🎯 国内
+  - DOMAIN-SUFFIX,arx.cc,🎯 国内
+  - DOMAIN-SUFFIX,mnnx.cc,🎯 国内
+  - DOMAIN-SUFFIX,jsd.f5.si,🎯 国内
+  - DOMAIN-SUFFIX,ghraw.f5.si,🎯 国内
+  - DOMAIN,api.v1.mk,🎯 国内
+  - DOMAIN,api.2c.lol,🎯 国内
+  - DOMAIN,api-suc.0z.gs,🎯 国内
+  - DOMAIN-SUFFIX,ghp.ci,🎯 国内
+  - DOMAIN-SUFFIX,ghpr.cc,🎯 国内
+  - DOMAIN-SUFFIX,gitdl.cn,🎯 国内
+  - DOMAIN-SUFFIX,ghproxy.cc,🎯 国内
+  - DOMAIN-SUFFIX,ghproxy.cn,🎯 国内
+  - DOMAIN-SUFFIX,ghproxy.net,🎯 国内
+  - DOMAIN,gh.llkk.cc,🎯 国内
+  - DOMAIN,gh.6yit.com,🎯 国内
+  - DOMAIN,gh.tryxd.cn,🎯 国内
+  - DOMAIN,gh.pylas.xyz,🎯 国内
+  - DOMAIN,gh.nxnow.top,🎯 国内
+  - DOMAIN,gh.sixyin.com,🎯 国内
+  - DOMAIN,mirror.v2gh.com,🎯 国内
+  - DOMAIN,github-mirror.us.kg,🎯 国内
+  - DOMAIN,proxy.yaoyaoling.net,🎯 国内
+  - DOMAIN-SUFFIX,githubfast.com,🎯 国内
+  - DOMAIN-SUFFIX,1976f.com,🎯 国内
+  - DOMAIN-SUFFIX,jmj.cc,🎯 国内
+  - DOMAIN-SUFFIX,freenom.com,🎯 国内
+  - DOMAIN-SUFFIX,m-team.cc,🎯 国内
+  - DOMAIN-SUFFIX,m-team.io,🎯 国内
+  - DOMAIN-SUFFIX,kuxueyun.com,🎯 国内
+  - DOMAIN-SUFFIX,ldstatic.com,🎯 国内
+  - DOMAIN-SUFFIX,linux.do,🎯 国内
+  - DOMAIN-KEYWORD,cn.alibabacloud.com,🎯 国内
+  - DOMAIN-KEYWORD,cn-s.alibabacloud.com,🎯 国内
+  - GEOSITE,microsoft@cn,🎯 国内
+  - GEOSITE,oracle,🎯 国内
+  - GEOSITE,netcup,🎯 国内
+  - GEOSITE,bandwagonhost,🎯 国内
+  - DOMAIN-SUFFIX,cs.rin.ru,🚀 代理
+  - DOMAIN-KEYWORD,intl.aliyun,🚀 代理
+  - GEOSITE,google,🚀 代理
+  - GEOSITE,alibabacloud,🚀 代理
+  - DOMAIN,dc.sigmob.cn,🚫 广告
+  - DOMAIN,open.e.kuaishou.com,🚫 广告
+  - DOMAIN,open.e.kuaishou.cn,🚫 广告
+  - DOMAIN-SUFFIX,adkwai.com,🚫 广告
+  - DOMAIN-SUFFIX,adukwai.com,🚫 广告
+  - DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com,🚫 广告
+  - DOMAIN,pangolin.snssdk.com,🚫 广告
+  - DOMAIN,pangolin-lq.snssdk.com,🚫 广告
+  - DOMAIN,pangolin-hl.snssdk.com,🚫 广告
+  - DOMAIN,pangolin-lf.snssdk.com,🚫 广告
+  - DOMAIN,tnc3-bjlgy.snssdk.com,🚫 广告
+  - DOMAIN,tnc3-alisc1.snssdk.com,🚫 广告
+  - DOMAIN,tnc3-aliec2.snssdk.com,🚫 广告
+  - DOMAIN,tnc11-bjlgy.snssdk.com,🚫 广告
+  - DOMAIN,tnc11-alisc1.snssdk.com,🚫 广告
+  - DOMAIN,tnc11-aliec2.snssdk.com,🚫 广告
+  - DOMAIN,tnc100-bjlgy.snssdk.com,🚫 广告
+  - DOMAIN,tnc100-alisc1.snssdk.com,🚫 广告
+  - DOMAIN,tnc100-aliec2.snssdk.com,🚫 广告
+  - DOMAIN,tnc0-bjlgy.zijieapi.com,🚫 广告
+  - DOMAIN,tnc0-alisc1.zijieapi.com,🚫 广告
+  - DOMAIN,tnc0-aliec2.zijieapi.com,🚫 广告
+  - DOMAIN,tnc3-bjlgy.zijieapi.com,🚫 广告
+  - DOMAIN,tnc3-alisc1.zijieapi.com,🚫 广告
+  - DOMAIN,tnc3-aliec2.zijieapi.com,🚫 广告
+  - DOMAIN,tnc11-bjlgy.zijieapi.com,🚫 广告
+  - DOMAIN,tnc11-alisc1.zijieapi.com,🚫 广告
+  - DOMAIN,tnc11-aliec2.zijieapi.com,🚫 广告
+  - DOMAIN,tnc100-bjlgy.zijieapi.com,🚫 广告
+  - DOMAIN,tnc100-alisc1.zijieapi.com,🚫 广告
+  - DOMAIN,tnc100-aliec2.zijieapi.com,🚫 广告
+  - DOMAIN-SUFFIX,ctobsnssdk.com,🚫 广告
+  - DOMAIN,api.hzsanjiaomao.com,🚫 广告
+  - DOMAIN,api.juliangcili.com,🚫 广告
+  - DOMAIN-SUFFIX,anythinktech.com,🚫 广告
+  - GEOSITE,gfw,🚀 代理
+  - GEOSITE,geolocation-cn,🎯 国内
+  - GEOSITE,category-games@cn,🎯 国内
+  - GEOSITE,tld-cn,🎯 国内
+  - GEOSITE,geolocation-!cn,🚀 代理
+  - GEOSITE,tld-!cn,🚀 代理
+  - GEOSITE,category-ads-all,🚫 广告
+  - GEOIP,cn,🎯 国内,no-resolve
+  - GEOIP,telegram,🚀 代理,no-resolve
+  - GEOIP,facebook,🚀 代理,no-resolve
+  - GEOIP,google,🚀 代理,no-resolve
+  - GEOIP,netflix,🚀 代理,no-resolve
+  - GEOIP,twitter,🚀 代理,no-resolve
+  - GEOIP,cloudfront,🚀 代理,no-resolve
+  - MATCH,🌐 其他
+#########################################节点配置#########################################

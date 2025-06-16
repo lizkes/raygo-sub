@@ -1,0 +1,43 @@
+[package]
+name = "raygo-sub"
+version = "0.1.0"
+edition = "2024"
+default-run = "raygo-sub" # <-- 在这里指定默认的二进制文件名
+
+[dependencies]
+# Web框架 - 只需要基础web功能和tokio集成
+ntex = { version = "2.0", features = ["tokio"], default-features = false }
+# 序列化 - 只需要derive宏
+serde = { version = "1.0", features = ["derive"], default-features = false }
+# YAML解析
+serde_yaml_ng = { version = "0.10", default-features = false }
+# 异步运行时 - 只需要文件系统功能
+tokio = { version = "1.0", features = ["fs"], default-features = false }
+# 压缩
+zstd = { version = "0.13", default-features = false }
+# 日志
+log = { version = "0.4", default-features = false }
+env_logger = { version = "0.11", default-features = false }
+# UUID - 只需要v4生成功能
+uuid = { version = "1.0", features = ["v4"], default-features = false }
+# 加密
+chacha20poly1305 = { version = "0.10", features = ["alloc"], default-features = false }
+# Base64编码
+base64 = { version = "0.22", default-features = false }
+
+# 二进制目标配置
+[[bin]]
+name = "raygo-sub"
+path = "src/main.rs"
+
+[[bin]]
+name = "raygo-encrypt"
+path = "utils/encrypt.rs"
+
+# Release构建优化配置 - 性能优先
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "unwind"
+strip = true

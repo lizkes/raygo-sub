@@ -1,0 +1,24 @@
+services:
+  raygo-sub:
+    image: ghcr.io/lizkes/raygo-sub:latest
+    container_name: raygo-sub
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:43309:8080"
+    volumes:
+      - ./config:/app/config:ro
+    networks:
+      - raygo-network
+    # # 资源限制
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.0'
+    #       memory: 512M
+    #     reservations:
+    #       cpus: '0.25'
+    #       memory: 128M
+
+networks:
+  raygo-network:
+    driver: bridge 

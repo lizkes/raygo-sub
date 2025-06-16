@@ -1,0 +1,18 @@
+# 监听地址 (0.0.0.0 表示监听所有网络接口)
+addr: 0.0.0.0
+
+# 监听端口 (请在部署时修改为你的实际端口)
+port: 8080
+
+# 日志级别，可选值: error, warn, info, debug, trace
+log_level: info
+
+# ChaCha20Poly1305 32字节密钥 (Base64编码)
+# !!! 这是一个极其重要的安全密钥，绝不能暴露 !!!
+# 你可以使用以下命令生成一个新的密钥:
+# openssl rand -base64 32
+encryption_key: "7GV8XJ9xNBq4/Srs7E5ppDoefmkgVjt2hahQPSM3n6M="  # <--- 在此填入你自己的32字节Base64密钥
+
+# 订阅服务URL
+# 请替换为你的私人订阅地址
+sub_url: "https://example.com/" # <--- 在此填入你的订阅服务URL
