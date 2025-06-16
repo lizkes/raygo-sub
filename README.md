@@ -137,6 +137,11 @@ docker exec -it raygo-sub sh
 ./raygo-encrypt /path/to/uuid-file
 ```
 
+或者
+
+```bash
+docker exec -it raygo-sub /app/raygo-encryp
+```
 #### 本地环境使用加密工具
 
 ```bash

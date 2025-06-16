@@ -102,7 +102,7 @@ pub async fn handle_subscription_request(
         Some(secret) => secret,
         None => {
             warn!("[{}] ❌ 缺少secret参数，访问被禁止", client_ip);
-            return HttpResponse::Forbidden()
+            return HttpResponse::NoContent()
                 .content_type("text/plain; charset=utf-8")
                 .body("");
         }
@@ -118,7 +118,7 @@ pub async fn handle_subscription_request(
         },
         Err(e) => {
             warn!("[{}] ❌ secret解密失败，访问被禁止: {}", client_ip, e);
-            return HttpResponse::Forbidden()
+            return HttpResponse::NoContent()
                 .content_type("text/plain; charset=utf-8")
                 .body("");
         }
@@ -129,7 +129,7 @@ pub async fn handle_subscription_request(
         Ok(uuid) => uuid,
         Err(_) => {
             warn!("[{}] ❌ 解密后的数据不是有效UUID，访问被禁止: {}", client_ip, uuid_str);
-            return HttpResponse::Forbidden()
+            return HttpResponse::NoContent()
                 .content_type("text/plain; charset=utf-8")
                 .body("");
         }
@@ -166,9 +166,9 @@ pub async fn handle_subscription_request(
         Ok(yaml) => yaml,
         Err(e) => {
             error!("❌ 配置序列化失败: {}", e);
-            return HttpResponse::InternalServerError()
+            return HttpResponse::NoContent()
                 .content_type("text/plain; charset=utf-8")
-                .body("配置序列化失败");
+                .body("");
         }
     };
 
@@ -187,9 +187,9 @@ pub async fn handle_subscription_request(
             },
             Err(e) => {
                 error!("[{}] ❌ 压缩失败: {}", client_ip, e);
-                return HttpResponse::InternalServerError()
+                return HttpResponse::NoContent()
                     .content_type("text/plain; charset=utf-8")
-                    .body("压缩失败");
+                    .body("");
             }
         };
 
