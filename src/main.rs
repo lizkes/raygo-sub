@@ -1,5 +1,5 @@
+use log::info;
 use ntex::web::{self, App, HttpServer};
-use log::{info};
 
 mod handlers;
 mod models;
@@ -22,7 +22,7 @@ async fn main() -> std::io::Result<()> {
             eprintln!("❌ 配置文件格式错误: {}", e);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                format!("配置文件解析失败: {}", e)
+                format!("配置文件解析失败: {}", e),
             ));
         }
     };
@@ -43,7 +43,7 @@ async fn main() -> std::io::Result<()> {
             eprintln!("❌ Clash配置文件格式错误: {}", e);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                format!("Clash配置解析失败: {}", e)
+                format!("Clash配置解析失败: {}", e),
             ));
         }
     };
@@ -62,26 +62,33 @@ async fn main() -> std::io::Result<()> {
         "debug" => log::LevelFilter::Debug,
         "trace" => log::LevelFilter::Trace,
         _ => {
-            eprintln!("⚠️  无效的日志级别: {}，使用默认级别 info", app_config.log_level);
+            eprintln!(
+                "⚠️  无效的日志级别: {}，使用默认级别 info",
+                app_config.log_level
+            );
             log::LevelFilter::Info
         }
     };
-    
+
     env_logger::Builder::new()
         .filter_level(log_level)
-        .format_timestamp_secs()
+        .format_timestamp_millis()
         .init();
-    
+
     info!("📝 日志级别设置为: {}", app_config.log_level);
     info!("🚀 RayGo-sub 服务器已启动");
     info!("🗃️  配置文件已加载到内存缓存");
-    info!("📍 服务地址: http://{}:{}", app_config.addr, app_config.port);
+    info!(
+        "📍 服务地址: http://{}:{}",
+        app_config.addr, app_config.port
+    );
     info!("   - GET /?secret=XXXX - 获取对应的clash订阅文件");
 
     HttpServer::new(move || {
         App::new()
             .state(app_state.clone())
             .route("/", web::get().to(handlers::handle_subscription_request))
+            .default_service(web::route().to(handlers::handle_other))
     })
     .bind((app_config.addr.as_str(), app_config.port))?
     .run()

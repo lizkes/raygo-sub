@@ -24,7 +24,10 @@ pub struct DnsConfig {
     pub enhanced_mode: Option<String>,
     #[serde(rename = "fake-ip-range", skip_serializing_if = "Option::is_none")]
     pub fake_ip_range: Option<String>,
-    #[serde(rename = "fake-ip-filter-mode", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "fake-ip-filter-mode",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub fake_ip_filter_mode: Option<String>,
     #[serde(rename = "fake-ip-filter", skip_serializing_if = "Option::is_none")]
     pub fake_ip_filter: Option<Vec<String>>,
@@ -32,11 +35,17 @@ pub struct DnsConfig {
     pub nameserver_policy: Option<HashMap<String, serde_yaml_ng::Value>>,
     #[serde(rename = "default-nameserver", skip_serializing_if = "Option::is_none")]
     pub default_nameserver: Option<Vec<String>>,
-    #[serde(rename = "proxy-server-nameserver", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "proxy-server-nameserver",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub proxy_server_nameserver: Option<Vec<String>>,
     #[serde(rename = "direct-nameserver", skip_serializing_if = "Option::is_none")]
     pub direct_nameserver: Option<Vec<String>>,
-    #[serde(rename = "direct-nameserver-follow-policy", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "direct-nameserver-follow-policy",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub direct_nameserver_follow_policy: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nameserver: Option<Vec<String>>,
@@ -70,7 +79,10 @@ pub struct TunConfig {
     pub stack: Option<String>,
     #[serde(rename = "auto-redirect", skip_serializing_if = "Option::is_none")]
     pub auto_redirect: Option<bool>,
-    #[serde(rename = "auto-detect-interface", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "auto-detect-interface",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub auto_detect_interface: Option<bool>,
     #[serde(rename = "dns-hijack", skip_serializing_if = "Option::is_none")]
     pub dns_hijack: Option<Vec<String>>,
@@ -88,7 +100,10 @@ pub struct TunConfig {
     pub mtu: Option<u32>,
     #[serde(rename = "strict-route", skip_serializing_if = "Option::is_none")]
     pub strict_route: Option<bool>,
-    #[serde(rename = "endpoint-independent-nat", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "endpoint-independent-nat",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub endpoint_independent_nat: Option<bool>,
     #[serde(rename = "include-interface", skip_serializing_if = "Option::is_none")]
     pub include_interface: Option<Vec<String>>,
@@ -98,7 +113,10 @@ pub struct TunConfig {
     pub include_uid: Option<Vec<u32>>,
     #[serde(rename = "exclude-uid", skip_serializing_if = "Option::is_none")]
     pub exclude_uid: Option<Vec<u32>>,
-    #[serde(rename = "include-android-user", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "include-android-user",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub include_android_user: Option<Vec<u32>>,
     #[serde(rename = "include-package", skip_serializing_if = "Option::is_none")]
     pub include_package: Option<Vec<String>>,
@@ -167,9 +185,15 @@ pub struct ProxyGroup {
     pub routing_mark: Option<u32>,
     #[serde(rename = "include-all", skip_serializing_if = "Option::is_none")]
     pub include_all: Option<bool>,
-    #[serde(rename = "include-all-proxies", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "include-all-proxies",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub include_all_proxies: Option<bool>,
-    #[serde(rename = "include-all-providers", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "include-all-providers",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub include_all_providers: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<String>,
@@ -380,17 +404,35 @@ pub struct ClashConfig {
     pub ipv6: Option<bool>,
 
     // 外部控制器
-    #[serde(rename = "external-controller", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "external-controller",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub external_controller: Option<String>,
-    #[serde(rename = "external-controller-cors", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "external-controller-cors",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub external_controller_cors: Option<HashMap<String, serde_yaml_ng::Value>>,
-    #[serde(rename = "external-controller-unix", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "external-controller-unix",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub external_controller_unix: Option<String>,
-    #[serde(rename = "external-controller-pipe", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "external-controller-pipe",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub external_controller_pipe: Option<String>,
-    #[serde(rename = "external-controller-tls", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "external-controller-tls",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub external_controller_tls: Option<String>,
-    #[serde(rename = "external-doh-server", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "external-doh-server",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub external_doh_server: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
@@ -418,7 +460,10 @@ pub struct ClashConfig {
     pub interface_name: Option<String>,
     #[serde(rename = "routing-mark", skip_serializing_if = "Option::is_none")]
     pub routing_mark: Option<u32>,
-    #[serde(rename = "global-client-fingerprint", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "global-client-fingerprint",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub global_client_fingerprint: Option<String>,
     #[serde(rename = "global-ua", skip_serializing_if = "Option::is_none")]
     pub global_ua: Option<String>,
@@ -430,7 +475,10 @@ pub struct ClashConfig {
     pub geodata_loader: Option<String>,
     #[serde(rename = "geo-auto-update", skip_serializing_if = "Option::is_none")]
     pub geo_auto_update: Option<bool>,
-    #[serde(rename = "geo-update-interval", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "geo-update-interval",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub geo_update_interval: Option<u32>,
     #[serde(rename = "geox-url", skip_serializing_if = "Option::is_none")]
     pub geox_url: Option<GeoxUrl>,
@@ -462,11 +510,11 @@ pub struct ClashConfig {
     // 代理配置
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proxies: Option<Vec<HashMap<String, serde_yaml_ng::Value>>>,
-    
+
     // 代理组配置 - 现在使用类型化结构体
     #[serde(rename = "proxy-groups", skip_serializing_if = "Option::is_none")]
     pub proxy_groups: Option<Vec<ProxyGroup>>,
-    
+
     // 代理提供者配置 - 现在使用类型化结构体
     #[serde(rename = "proxy-providers", skip_serializing_if = "Option::is_none")]
     pub proxy_providers: Option<HashMap<String, ProxyProvider>>,
@@ -474,11 +522,11 @@ pub struct ClashConfig {
     // 规则配置 - 保持字符串格式以兼容现有配置
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rules: Option<Vec<String>>,
-    
+
     // 规则提供者配置 - 现在使用类型化结构体
     #[serde(rename = "rule-providers", skip_serializing_if = "Option::is_none")]
     pub rule_providers: Option<HashMap<String, RuleProvider>>,
-    
+
     // 子规则配置 - 现在使用类型化结构体
     #[serde(rename = "sub-rules", skip_serializing_if = "Option::is_none")]
     pub sub_rules: Option<HashMap<String, SubRule>>,
@@ -563,9 +611,9 @@ pub struct AppConfig {
     pub port: u16,
     #[serde(default = "default_log_level")]
     pub log_level: String,
-    pub encryption_key: String,  // Base64编码的32字节密钥
+    pub encryption_key: String, // Base64编码的32字节密钥
     #[serde(default = "default_sub_url")]
-    pub sub_url: String,  // 订阅服务URL
+    pub sub_url: String, // 订阅服务URL
 }
 
 // 默认日志级别

@@ -21,4 +21,4 @@ services:
 
 networks:
   raygo-network:
-    driver: bridge 
+    driver: bridge

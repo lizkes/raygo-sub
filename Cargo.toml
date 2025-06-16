@@ -17,11 +17,16 @@ tokio = { version = "1.0", features = ["fs"], default-features = false }
 zstd = { version = "0.13", default-features = false }
 # 日志
 log = { version = "0.4", default-features = false }
-env_logger = { version = "0.11", default-features = false }
+env_logger = { version = "0.11", features = [
+  "humantime",
+  "auto-color",
+], default-features = false }
 # UUID - 只需要v4生成功能
 uuid = { version = "1.0", features = ["v4"], default-features = false }
 # 加密
-chacha20poly1305 = { version = "0.10", features = ["alloc"], default-features = false }
+chacha20poly1305 = { version = "0.10", features = [
+  "alloc",
+], default-features = false }
 # Base64编码
 base64 = { version = "0.22", default-features = false }
 
