@@ -151,8 +151,12 @@ pub async fn handle_subscription_request(
     }
 
     // 处理订阅配置
-    // 1. 克隆配置以便修改
-    let mut clash_config = state.clash_config.clone();
+    // 1. 获取配置读锁并克隆配置以便修改
+    let clash_config = {
+        let config_guard = state.clash_config.read().await;
+        config_guard.clone()
+    };
+    let mut clash_config = clash_config;
 
     debug!("[{}] ✅ 使用缓存的配置文件", client_ip);
 
@@ -247,4 +251,103 @@ pub async fn handle_other(req: HttpRequest) -> impl Responder {
     warn!("[{}] ❌ 请求路径错误，访问被禁止: {}", client_ip, req.uri());
 
     HttpResponse::NoContent().finish()
+}
+
+// 热重载处理函数
+pub async fn handle_reload(req: HttpRequest, state: State<AppState>) -> impl Responder {
+    let client_ip = get_client_ip(&req);
+
+    // 验证Authorization Bearer头
+    let auth_header = match req.headers().get("Authorization") {
+        Some(header) => header,
+        None => {
+            warn!("[{}] ❌ /reload 缺少Authorization头，访问被禁止", client_ip);
+            return HttpResponse::Unauthorized()
+                .content_type("text/plain; charset=utf-8")
+                .body("Unauthorized");
+        }
+    };
+
+    let auth_str = match auth_header.to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            warn!("[{}] ❌ /reload Authorization头格式无效", client_ip);
+            return HttpResponse::Unauthorized()
+                .content_type("text/plain; charset=utf-8")
+                .body("Unauthorized");
+        }
+    };
+
+    // 检查Bearer前缀
+    let token = if auth_str.starts_with("Bearer ") {
+        &auth_str[7..] // 去掉"Bearer "前缀
+    } else {
+        warn!("[{}] ❌ /reload Authorization头缺少Bearer前缀", client_ip);
+        return HttpResponse::Unauthorized()
+            .content_type("text/plain; charset=utf-8")
+            .body("Unauthorized");
+    };
+
+    // 验证token是否是"reload"加密后的值
+    let expected_plaintext = match decrypt_secret(token, &state.app_config.encryption_key) {
+        Ok(decrypted) => decrypted,
+        Err(e) => {
+            warn!("[{}] ❌ /reload token解密失败: {}", client_ip, e);
+            return HttpResponse::Unauthorized()
+                .content_type("text/plain; charset=utf-8")
+                .body("Unauthorized");
+        }
+    };
+
+    if expected_plaintext != "reload" {
+        warn!(
+            "[{}] ❌ /reload token验证失败，期望'reload'，实际'{}'",
+            client_ip, expected_plaintext
+        );
+        return HttpResponse::Unauthorized()
+            .content_type("text/plain; charset=utf-8")
+            .body("Unauthorized");
+    }
+
+    info!("[{}] 🔄 开始热重载配置文件", client_ip);
+
+    // 重新读取clash.yml配置文件
+    let clash_config_content = match tokio::fs::read_to_string("config/clash.yml").await {
+        Ok(content) => content,
+        Err(e) => {
+            error!(
+                "[{}] ❌ 热重载失败: 无法读取config/clash.yml - {}",
+                client_ip, e
+            );
+            return HttpResponse::InternalServerError()
+                .content_type("text/plain; charset=utf-8")
+                .body("Failed to read config file");
+        }
+    };
+
+    // 解析新的配置文件
+    let new_clash_config = match serde_yaml_ng::from_str(&clash_config_content) {
+        Ok(config) => config,
+        Err(e) => {
+            error!(
+                "[{}] ❌ 热重载失败: config/clash.yml解析错误 - {}",
+                client_ip, e
+            );
+            return HttpResponse::InternalServerError()
+                .content_type("text/plain; charset=utf-8")
+                .body("Failed to parse config file");
+        }
+    };
+
+    // 更新配置
+    {
+        let mut config_guard = state.clash_config.write().await;
+        *config_guard = new_clash_config;
+    }
+
+    info!("[{}] ✅ 配置文件热重载成功", client_ip);
+
+    HttpResponse::Ok()
+        .content_type("text/plain; charset=utf-8")
+        .body("配置重载成功")
 }

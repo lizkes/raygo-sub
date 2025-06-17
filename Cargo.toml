@@ -12,7 +12,7 @@ serde = { version = "1.0", features = ["derive"], default-features = false }
 # YAML解析
 serde_yaml_ng = { version = "0.10", default-features = false }
 # 异步运行时 - 只需要文件系统功能
-tokio = { version = "1.0", features = ["fs"], default-features = false }
+tokio = { version = "1.0", features = ["fs", "sync"], default-features = false }
 # 压缩
 zstd = { version = "0.13", default-features = false }
 # 日志

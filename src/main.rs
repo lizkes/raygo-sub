@@ -1,9 +1,13 @@
+mod handlers;
+mod models;
+
 use ntex::web::{self, App, HttpServer};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::info;
 use tracing_subscriber::fmt::time::OffsetTime;
 
-mod handlers;
-mod models;
+use crate::models::AppState;
 
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
@@ -50,9 +54,9 @@ async fn main() -> std::io::Result<()> {
     };
 
     // 创建应用状态
-    let app_state = models::AppState {
+    let app_state = AppState {
         app_config: app_config.clone(),
-        clash_config,
+        clash_config: Arc::new(RwLock::new(clash_config)),
     };
 
     // 根据配置文件初始化日志系统
@@ -101,6 +105,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .state(app_state.clone())
             .route("/", web::get().to(handlers::handle_subscription_request))
+            .route("/reload", web::post().to(handlers::handle_reload))
             .default_service(web::route().to(handlers::handle_other))
     })
     .bind((app_config.addr.as_str(), app_config.port))?

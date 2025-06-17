@@ -6,7 +6,6 @@ use chacha20poly1305::{
 use std::env;
 use std::fs;
 use std::path::Path;
-use uuid::Uuid;
 
 // 从主模块导入AppConfig
 mod models {
@@ -41,70 +40,56 @@ fn main() {
         }
     };
 
-    let (uuids, input_file_path) = get_uuids();
+    let (data_list, input_file_path) = get_data_list();
 
-    if uuids.is_empty() {
-        println!("❌ 没有提供任何UUID");
+    if data_list.is_empty() {
+        println!("❌ 没有提供任何数据");
         return;
     }
 
     let mut results = Vec::new();
 
-    for (_, uuid_str) in uuids.iter().enumerate() {
-        let uuid_str = uuid_str.trim();
+    for (_, data_str) in data_list.iter().enumerate() {
+        let data_str = data_str.trim();
 
-        if uuid_str.is_empty() {
+        if data_str.is_empty() {
             continue;
         }
 
-        // 验证UUID格式
-        if let Err(_) = Uuid::parse_str(uuid_str) {
-            let error_msg = format!("无效的UUID格式");
-            let result = EncryptionResult {
-                uuid: uuid_str.to_string(),
-                encrypted: None,
-                error: Some(error_msg.clone()),
-            };
-            results.push(result);
-
-            println!("❌ 无效的UUID格式: {}", uuid_str);
-            continue;
-        }
-
-        match encrypt_uuid(uuid_str, &config.encryption_key) {
+        match encrypt_data(data_str, &config.encryption_key) {
             Ok(encrypted) => {
                 let result = EncryptionResult {
-                    uuid: uuid_str.to_string(),
+                    data: data_str.to_string(),
                     encrypted: Some(encrypted.clone()),
                     error: None,
                 };
                 results.push(result);
 
-                // 只输出测试URL
-                println!("{}/?secret={}", config.sub_url, encrypted);
+                // 直接输出加密后的数据
+                println!("{}", encrypted);
             }
             Err(e) => {
                 let result = EncryptionResult {
-                    uuid: uuid_str.to_string(),
+                    data: data_str.to_string(),
                     encrypted: None,
                     error: Some(e.clone()),
                 };
                 results.push(result);
 
-                println!("❌ 加密失败: {} - {}", uuid_str, e);
+                println!("❌ 加密失败: {} - {}", data_str, e);
             }
         }
     }
 
     // 如果是文件输入，将结果写入文件
     if let Some(file_path) = input_file_path {
-        if let Err(e) = write_results_to_file(&results, &file_path, &config) {
+        if let Err(e) = write_results_to_file(&results, &file_path) {
             println!("❌ 保存文件失败: {}", e);
         }
     }
 }
 
-fn get_uuids() -> (Vec<String>, Option<String>) {
+fn get_data_list() -> (Vec<String>, Option<String>) {
     let args: Vec<String> = env::args().collect();
 
     // 如果提供了文件路径参数，使用指定文件
@@ -115,13 +100,13 @@ fn get_uuids() -> (Vec<String>, Option<String>) {
         if std::path::Path::new(file_path).exists() {
             match fs::read_to_string(file_path) {
                 Ok(content) => {
-                    let uuids: Vec<String> = content
+                    let data_list: Vec<String> = content
                         .lines()
                         .map(|line| line.trim().to_string())
                         .filter(|line| !line.is_empty() && !line.starts_with('#')) // 过滤空行和注释行
                         .collect();
 
-                    return (uuids, Some(file_path.clone()));
+                    return (data_list, Some(file_path.clone()));
                 }
                 Err(e) => {
                     println!("❌ 无法读取文件: {}", e);
@@ -134,33 +119,33 @@ fn get_uuids() -> (Vec<String>, Option<String>) {
         }
     }
 
-    // 没有参数时，默认读取config/uuid文件
-    let default_file = "config/uuid";
+    // 没有参数时，默认读取config/data文件
+    let default_file = "config/data";
 
     if std::path::Path::new(default_file).exists() {
         match fs::read_to_string(default_file) {
             Ok(content) => {
-                let uuids: Vec<String> = content
+                let data_list: Vec<String> = content
                     .lines()
                     .map(|line| line.trim().to_string())
                     .filter(|line| !line.is_empty() && !line.starts_with('#')) // 过滤空行和注释行
                     .collect();
 
-                (uuids, Some(default_file.to_string()))
+                (data_list, Some(default_file.to_string()))
             }
             Err(e) => {
-                println!("❌ 无法读取默认UUID文件 {}: {}", default_file, e);
+                println!("❌ 无法读取默认数据文件 {}: {}", default_file, e);
                 (Vec::new(), None)
             }
         }
     } else {
-        println!("❌ 默认UUID文件不存在: {}", default_file);
-        println!("请创建 {} 文件或通过参数指定UUID文件路径", default_file);
+        println!("❌ 默认数据文件不存在: {}", default_file);
+        println!("请创建 {} 文件或通过参数指定数据文件路径", default_file);
         (Vec::new(), None)
     }
 }
 
-fn encrypt_uuid(uuid_str: &str, key_base64: &str) -> Result<String, String> {
+fn encrypt_data(data_str: &str, key_base64: &str) -> Result<String, String> {
     // 1. 解码Base64编码的密钥
     let key_bytes = BASE64
         .decode(key_base64)
@@ -184,15 +169,15 @@ fn encrypt_uuid(uuid_str: &str, key_base64: &str) -> Result<String, String> {
         .as_nanos() as u64;
 
     let mut nonce_bytes = [0u8; 12];
-    // 使用时间戳和UUID前几个字符生成nonce
-    let uuid_bytes = uuid_str.as_bytes();
+    // 使用时间戳和数据前几个字符生成nonce
+    let data_bytes = data_str.as_bytes();
     for i in 0..12 {
-        nonce_bytes[i] = ((timestamp >> (i * 5)) as u8) ^ uuid_bytes.get(i).unwrap_or(&0);
+        nonce_bytes[i] = ((timestamp >> (i * 5)) as u8) ^ data_bytes.get(i).unwrap_or(&0);
     }
     let nonce = Nonce::from_slice(&nonce_bytes);
 
-    // 3. 加密UUID字符串
-    let plaintext = uuid_str.as_bytes();
+    // 3. 加密数据字符串
+    let plaintext = data_str.as_bytes();
     let ciphertext = cipher
         .encrypt(nonce, plaintext)
         .map_err(|e| format!("加密失败: {}", e))?;
@@ -212,7 +197,7 @@ fn encrypt_uuid(uuid_str: &str, key_base64: &str) -> Result<String, String> {
 
 // 加密结果结构体
 struct EncryptionResult {
-    uuid: String,
+    data: String,
     encrypted: Option<String>,
     error: Option<String>,
 }
@@ -221,7 +206,6 @@ struct EncryptionResult {
 fn write_results_to_file(
     results: &[EncryptionResult],
     input_file_path: &str,
-    config: &AppConfig,
 ) -> Result<(), String> {
     // 生成输出文件名
     let input_path = Path::new(input_file_path);
@@ -237,17 +221,17 @@ fn write_results_to_file(
         .unwrap_or(Path::new("."))
         .join(&output_file_name);
 
-    // 创建输出内容 - 简化格式，只显示测试URL
+    // 创建输出内容 - 直接输出加密后的数据
     let mut content = String::new();
 
     for result in results {
         match &result.encrypted {
             Some(encrypted) => {
-                content.push_str(&format!("{}/?secret={}\n", config.sub_url, encrypted));
+                content.push_str(&format!("{}\n", encrypted));
             }
             None => {
                 if let Some(error) = &result.error {
-                    content.push_str(&format!("# 错误: {} - {}\n", result.uuid, error));
+                    content.push_str(&format!("# 错误: {} - {}\n", result.data, error));
                 }
             }
         }

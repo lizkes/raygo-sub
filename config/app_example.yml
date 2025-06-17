@@ -12,7 +12,3 @@ log_level: info
 # 你可以使用以下命令生成一个新的密钥:
 # openssl rand -base64 32
 encryption_key: "7GV8XJ9xNBq4/Srs7E5ppDoefmkgVjt2hahQPSM3n6M="  # <--- 在此填入你自己的32字节Base64密钥
-
-# 订阅服务URL
-# 请替换为你的私人订阅地址
-sub_url: "https://example.com/" # <--- 在此填入你的订阅服务URL

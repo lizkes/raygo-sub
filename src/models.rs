@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 // DNS配置结构体
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -612,8 +614,6 @@ pub struct AppConfig {
     #[serde(default = "default_log_level")]
     pub log_level: String,
     pub encryption_key: String, // Base64编码的32字节密钥
-    #[serde(default = "default_sub_url")]
-    pub sub_url: String, // 订阅服务URL
 }
 
 // 默认日志级别
@@ -621,15 +621,10 @@ fn default_log_level() -> String {
     "info".to_string()
 }
 
-// 默认订阅URL
-fn default_sub_url() -> String {
-    "http://127.0.0.1:8080".to_string()
-}
-
 // 应用状态结构体，用于缓存配置文件内容
-#[derive(Debug, Clone)]
 #[allow(dead_code)]
+#[derive(Clone)]
 pub struct AppState {
     pub app_config: AppConfig,
-    pub clash_config: ClashConfig,
+    pub clash_config: Arc<RwLock<ClashConfig>>,
 }
