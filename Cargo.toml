@@ -39,6 +39,10 @@ chacha20poly1305 = { version = "0.10", features = [
 ], default-features = false }
 # Base64编码
 base64 = { version = "0.22", default-features = false }
+# Multipart支持
+ntex-multipart = { version = "2.0", default-features = false }
+# 异步工具
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
 
 # 二进制目标配置
 [[bin]]
@@ -52,7 +56,6 @@ path = "utils/encrypt.rs"
 # Release构建优化配置 - 性能优先
 [profile.release]
 opt-level = 3
-lto = "fat"
 codegen-units = 1
 panic = "unwind"
 strip = true

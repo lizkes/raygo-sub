@@ -614,6 +614,7 @@ pub struct AppConfig {
     #[serde(default = "default_log_level")]
     pub log_level: String,
     pub encryption_key: String, // Base64编码的32字节密钥
+    pub admin_password: String, // 管理员密码
 }
 
 // 默认日志级别

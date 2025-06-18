@@ -100,12 +100,20 @@ async fn main() -> std::io::Result<()> {
         app_config.addr, app_config.port
     );
     info!("   - GET /?secret=XXXX - 获取对应的clash订阅文件");
+    info!("   - GET /config?auth=XXXX - 配置编辑页面");
+    info!("   - POST /config/reload - 热重载配置文件");
 
     HttpServer::new(move || {
         App::new()
             .state(app_state.clone())
-            .route("/", web::get().to(handlers::handle_subscription_request))
-            .route("/reload", web::post().to(handlers::handle_reload))
+            .route("/", web::get().to(handlers::handle_subscription))
+            .route("/favicon.ico", web::get().to(handlers::handle_favicon))
+            .route("/config", web::get().to(handlers::handle_config_get))
+            .route("/config", web::post().to(handlers::handle_config_post))
+            .route(
+                "/config/reload",
+                web::post().to(handlers::handle_config_reload),
+            )
             .default_service(web::route().to(handlers::handle_other))
     })
     .bind((app_config.addr.as_str(), app_config.port))?

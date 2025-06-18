@@ -12,3 +12,5 @@ log_level: info
 # 你可以使用以下命令生成一个新的密钥:
 # openssl rand -base64 32
 encryption_key: "7GV8XJ9xNBq4/Srs7E5ppDoefmkgVjt2hahQPSM3n6M="  # <--- 在此填入你自己的32字节Base64密钥
+# 管理员密码，进行高权限行为
+admin_password: "admin"
