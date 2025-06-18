@@ -65,6 +65,7 @@ pub async fn handle_config_get(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RayGo配置编辑器</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <style>
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -345,6 +346,7 @@ pub async fn handle_config_post(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>保存成功 - RayGo配置编辑器</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <style>
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

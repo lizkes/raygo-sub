@@ -107,7 +107,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .state(app_state.clone())
             .route("/", web::get().to(handlers::handle_subscription))
-            .route("/favicon.ico", web::get().to(handlers::handle_favicon))
+            .route("/favicon.svg", web::get().to(handlers::handle_favicon))
             .route("/config", web::get().to(handlers::handle_config_get))
             .route("/config", web::post().to(handlers::handle_config_post))
             .route(
