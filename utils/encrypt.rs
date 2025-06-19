@@ -49,17 +49,28 @@ fn main() {
 
     let mut results = Vec::new();
 
-    for (_, data_str) in data_list.iter().enumerate() {
-        let data_str = data_str.trim();
+    for data_str in data_list.iter() {
+        let trimmed = data_str.trim();
 
-        if data_str.is_empty() {
+        // 如果是空行或注释行，原样保留
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            let result = EncryptionResult {
+                data: data_str.clone(),
+                encrypted: None,
+                error: None,
+            };
+            results.push(result);
+
+            // 终端输出原行
+            println!("{}", data_str);
             continue;
         }
 
-        match encrypt_data(data_str, &config.encryption_key) {
+        // 对普通数据行进行加密
+        match encrypt_data(trimmed, &config.encryption_key) {
             Ok(encrypted) => {
                 let result = EncryptionResult {
-                    data: data_str.to_string(),
+                    data: data_str.clone(),
                     encrypted: Some(encrypted.clone()),
                     error: None,
                 };
@@ -70,13 +81,13 @@ fn main() {
             }
             Err(e) => {
                 let result = EncryptionResult {
-                    data: data_str.to_string(),
+                    data: data_str.clone(),
                     encrypted: None,
                     error: Some(e.clone()),
                 };
                 results.push(result);
 
-                println!("❌ 加密失败: {} - {}", data_str, e);
+                println!("❌ 加密失败: {} - {}", trimmed, e);
             }
         }
     }
@@ -102,8 +113,7 @@ fn get_data_list() -> (Vec<String>, Option<String>) {
                 Ok(content) => {
                     let data_list: Vec<String> = content
                         .lines()
-                        .map(|line| line.trim().to_string())
-                        .filter(|line| !line.is_empty() && !line.starts_with('#')) // 过滤空行和注释行
+                        .map(|line| line.to_string()) // 保持原始格式，不trim
                         .collect();
 
                     return (data_list, Some(file_path.clone()));
@@ -127,8 +137,7 @@ fn get_data_list() -> (Vec<String>, Option<String>) {
             Ok(content) => {
                 let data_list: Vec<String> = content
                     .lines()
-                    .map(|line| line.trim().to_string())
-                    .filter(|line| !line.is_empty() && !line.starts_with('#')) // 过滤空行和注释行
+                    .map(|line| line.to_string()) // 保持原始格式，不trim
                     .collect();
 
                 (data_list, Some(default_file.to_string()))
@@ -221,17 +230,22 @@ fn write_results_to_file(
         .unwrap_or(Path::new("."))
         .join(&output_file_name);
 
-    // 创建输出内容 - 直接输出加密后的数据
+    // 创建输出内容 - 保持原始格式
     let mut content = String::new();
 
     for result in results {
         match &result.encrypted {
             Some(encrypted) => {
+                // 普通数据行，输出加密结果
                 content.push_str(&format!("{}\n", encrypted));
             }
             None => {
                 if let Some(error) = &result.error {
-                    content.push_str(&format!("# 错误: {} - {}\n", result.data, error));
+                    // 加密失败的行，输出错误信息
+                    content.push_str(&format!("# 错误: {} - {}\n", result.data.trim(), error));
+                } else {
+                    // 空行或注释行，原样输出
+                    content.push_str(&format!("{}\n", result.data));
                 }
             }
         }
