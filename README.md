@@ -135,7 +135,7 @@ docker exec -it raygo-sub sh
 ./raygo-encrypt
 
 # 或指定文件
-./raygo-encrypt /path/to/data-file
+./raygo-encrypt -d /path/to/data-file
 ```
 
 或者
@@ -154,7 +154,7 @@ cargo build --release --bin raygo-encrypt
 ./target/release/raygo-encrypt
 
 # 指定数据文件
-./target/release/raygo-encrypt path/to/your/data-file
+./target/release/raygo-encrypt -d path/to/your/data-file
 ```
 
 输出示例：

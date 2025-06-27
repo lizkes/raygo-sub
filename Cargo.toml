@@ -43,6 +43,12 @@ base64 = { version = "0.22", default-features = false }
 ntex-multipart = { version = "2.0", default-features = false }
 # 异步工具
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
+# 命令行参数解析
+clap = { version = "4.0", features = [
+  "derive",
+  "std",
+  "help",
+], default-features = false }
 
 # 二进制目标配置
 [[bin]]

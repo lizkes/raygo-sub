@@ -3,20 +3,36 @@ use chacha20poly1305::{
     ChaCha20Poly1305, Key, Nonce,
     aead::{Aead, KeyInit},
 };
-use std::env;
+use clap::Parser;
+use serde::Deserialize;
 use std::fs;
 use std::path::Path;
 
-// 从主模块导入AppConfig
-mod models {
-    include!("../src/models.rs");
+// 独立的应用配置结构
+#[derive(Debug, Deserialize)]
+struct AppConfig {
+    encryption_key: String,
 }
-use models::AppConfig;
+
+// 命令行参数结构
+#[derive(Parser)]
+#[command(name = "raygo-encrypt")]
+#[command(about = "数据加密工具")]
+struct Args {
+    /// 配置文件路径
+    #[arg(short = 'c', long = "config", default_value = "config/app.yml")]
+    config_path: String,
+
+    /// 数据文件路径（优先级高于直接字符串）
+    #[arg(short = 'd', long = "data")]
+    data_file: Option<String>,
+
+    /// 要加密的字符串
+    input_string: Option<String>,
+}
 
 // 读取配置文件
-fn load_config() -> Result<AppConfig, String> {
-    let config_path = "config/app.yml";
-
+fn load_config(config_path: &str) -> Result<AppConfig, String> {
     if !Path::new(config_path).exists() {
         return Err(format!("配置文件不存在: {}", config_path));
     }
@@ -31,8 +47,10 @@ fn load_config() -> Result<AppConfig, String> {
 }
 
 fn main() {
+    let args = Args::parse();
+
     // 读取配置文件获取encryption_key
-    let config = match load_config() {
+    let config = match load_config(&args.config_path) {
         Ok(config) => config,
         Err(e) => {
             println!("❌ {}", e);
@@ -40,10 +58,61 @@ fn main() {
         }
     };
 
-    let (data_list, input_file_path) = get_data_list();
+    // 根据参数决定数据来源
+    if let Some(data_file_path) = &args.data_file {
+        // 使用数据文件模式
+        process_data_file(data_file_path, &config.encryption_key);
+    } else if let Some(input_string) = &args.input_string {
+        // 使用直接字符串模式
+        process_string(input_string, &config.encryption_key);
+    } else {
+        // 尝试使用默认数据文件
+        let default_file = "config/data";
+        if Path::new(default_file).exists() {
+            process_data_file(default_file, &config.encryption_key);
+        } else {
+            println!("❌ 未提供输入数据");
+            println!("请使用以下方式之一：");
+            println!("  1. 直接传入字符串: raygo-encrypt \"要加密的内容\"");
+            println!("  2. 使用数据文件: raygo-encrypt -d /path/to/data.txt");
+            println!("  3. 创建默认数据文件: {}", default_file);
+        }
+    }
+}
+
+// 处理字符串输入
+fn process_string(input_string: &str, encryption_key: &str) {
+    match encrypt_data(input_string, encryption_key) {
+        Ok(encrypted) => {
+            println!("{}", encrypted);
+        }
+        Err(e) => {
+            println!("❌ 加密失败: {}", e);
+        }
+    }
+}
+
+// 处理数据文件
+fn process_data_file(file_path: &str, encryption_key: &str) {
+    // 检查文件是否存在
+    if !Path::new(file_path).exists() {
+        println!("❌ 数据文件不存在: {}", file_path);
+        return;
+    }
+
+    // 读取文件内容
+    let content = match fs::read_to_string(file_path) {
+        Ok(content) => content,
+        Err(e) => {
+            println!("❌ 无法读取数据文件: {}", e);
+            return;
+        }
+    };
+
+    let data_list: Vec<String> = content.lines().map(|line| line.to_string()).collect();
 
     if data_list.is_empty() {
-        println!("❌ 没有提供任何数据");
+        println!("❌ 数据文件为空");
         return;
     }
 
@@ -67,7 +136,7 @@ fn main() {
         }
 
         // 对普通数据行进行加密
-        match encrypt_data(trimmed, &config.encryption_key) {
+        match encrypt_data(trimmed, encryption_key) {
             Ok(encrypted) => {
                 let result = EncryptionResult {
                     data: data_str.clone(),
@@ -92,65 +161,9 @@ fn main() {
         }
     }
 
-    // 如果是文件输入，将结果写入文件
-    if let Some(file_path) = input_file_path {
-        if let Err(e) = write_results_to_file(&results, &file_path) {
-            println!("❌ 保存文件失败: {}", e);
-        }
-    }
-}
-
-fn get_data_list() -> (Vec<String>, Option<String>) {
-    let args: Vec<String> = env::args().collect();
-
-    // 如果提供了文件路径参数，使用指定文件
-    if args.len() > 1 {
-        let file_path = &args[1];
-
-        // 检查文件是否存在
-        if std::path::Path::new(file_path).exists() {
-            match fs::read_to_string(file_path) {
-                Ok(content) => {
-                    let data_list: Vec<String> = content
-                        .lines()
-                        .map(|line| line.to_string()) // 保持原始格式，不trim
-                        .collect();
-
-                    return (data_list, Some(file_path.clone()));
-                }
-                Err(e) => {
-                    println!("❌ 无法读取文件: {}", e);
-                    return (Vec::new(), None);
-                }
-            }
-        } else {
-            println!("❌ 文件不存在: {}", file_path);
-            return (Vec::new(), None);
-        }
-    }
-
-    // 没有参数时，默认读取config/data文件
-    let default_file = "config/data";
-
-    if std::path::Path::new(default_file).exists() {
-        match fs::read_to_string(default_file) {
-            Ok(content) => {
-                let data_list: Vec<String> = content
-                    .lines()
-                    .map(|line| line.to_string()) // 保持原始格式，不trim
-                    .collect();
-
-                (data_list, Some(default_file.to_string()))
-            }
-            Err(e) => {
-                println!("❌ 无法读取默认数据文件 {}: {}", default_file, e);
-                (Vec::new(), None)
-            }
-        }
-    } else {
-        println!("❌ 默认数据文件不存在: {}", default_file);
-        println!("请创建 {} 文件或通过参数指定数据文件路径", default_file);
-        (Vec::new(), None)
+    // 将结果写入文件
+    if let Err(e) = write_results_to_file(&results, file_path) {
+        println!("❌ 保存文件失败: {}", e);
     }
 }
 
