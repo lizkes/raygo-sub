@@ -23,11 +23,15 @@ struct Args {
     #[arg(short = 'c', long = "config", default_value = "config/app.yml")]
     config_path: String,
 
-    /// 数据文件路径（优先级高于直接字符串）
+    /// 直接指定加密密钥（优先级高于配置文件）
+    #[arg(short = 's', long = "secret")]
+    encryption_key: Option<String>,
+
+    /// 数据文件路径
     #[arg(short = 'd', long = "data")]
     data_file: Option<String>,
 
-    /// 要加密的字符串
+    /// 要加密的字符串（优先级高于数据文件）
     input_string: Option<String>,
 }
 
@@ -49,27 +53,34 @@ fn load_config(config_path: &str) -> Result<AppConfig, String> {
 fn main() {
     let args = Args::parse();
 
-    // 读取配置文件获取encryption_key
-    let config = match load_config(&args.config_path) {
-        Ok(config) => config,
-        Err(e) => {
-            println!("❌ {}", e);
-            return;
-        }
+    // 获取加密密钥：优先使用-s参数，否则从配置文件读取
+    let encryption_key = if let Some(key) = &args.encryption_key {
+        // 使用命令行提供的密钥
+        key.clone()
+    } else {
+        // 从配置文件读取密钥
+        let config = match load_config(&args.config_path) {
+            Ok(config) => config,
+            Err(e) => {
+                println!("❌ {}", e);
+                return;
+            }
+        };
+        config.encryption_key
     };
 
-    // 根据参数决定数据来源
-    if let Some(data_file_path) = &args.data_file {
+    // 根据参数决定数据来源（字符串优先级高于文件）
+    if let Some(input_string) = &args.input_string {
+        // 使用直接字符串模式（优先级最高）
+        process_string(input_string, &encryption_key);
+    } else if let Some(data_file_path) = &args.data_file {
         // 使用数据文件模式
-        process_data_file(data_file_path, &config.encryption_key);
-    } else if let Some(input_string) = &args.input_string {
-        // 使用直接字符串模式
-        process_string(input_string, &config.encryption_key);
+        process_data_file(data_file_path, &encryption_key);
     } else {
         // 尝试使用默认数据文件
         let default_file = "config/data";
         if Path::new(default_file).exists() {
-            process_data_file(default_file, &config.encryption_key);
+            process_data_file(default_file, &encryption_key);
         } else {
             println!("❌ 未提供输入数据");
             println!("请使用以下方式之一：");
