@@ -20,7 +20,7 @@ pub async fn handle_config_get(
     let encrypted_auth = match &query.auth {
         Some(auth) => auth,
         None => {
-            warn!("[{}] ❌ /config 缺少auth参数，访问被禁止", client_ip);
+            debug!("[{}] /config 缺少auth参数，访问被禁止", client_ip);
             return HttpResponse::NoContent().finish();
         }
     };
@@ -29,18 +29,18 @@ pub async fn handle_config_get(
     let decrypted_password = match decrypt_secret(&encrypted_auth, &state.app_config.encryption_key)
     {
         Ok(decrypted) => {
-            debug!("[{}] 🔓 /config 成功解密auth", client_ip);
+            debug!("[{}] /config 成功解密auth", client_ip);
             decrypted
         }
         Err(e) => {
-            warn!("[{}] ❌ /config auth解密失败，访问被禁止: {}", client_ip, e);
+            warn!("[{}] /config auth解密失败，访问被禁止: {}", client_ip, e);
             return HttpResponse::NoContent().finish();
         }
     };
 
     // 验证解密后的密码是否与admin_password匹配
     if decrypted_password != state.app_config.admin_password {
-        warn!("[{}] ❌ /config 管理员密码验证失败，访问被禁止", client_ip);
+        warn!("[{}] /config 管理员密码验证失败，访问被禁止", client_ip);
         return HttpResponse::NoContent().finish();
     }
 
@@ -50,7 +50,7 @@ pub async fn handle_config_get(
     let config_content = match tokio::fs::read_to_string("config/clash.yml").await {
         Ok(content) => content,
         Err(e) => {
-            error!("[{}] ❌ 读取配置文件失败: {}", client_ip, e);
+            error!("[{}] 读取配置文件失败: {}", client_ip, e);
             return HttpResponse::InternalServerError()
                 .content_type("text/html; charset=utf-8")
                 .body("<h1>错误</h1><p>无法读取配置文件</p>");
@@ -244,10 +244,7 @@ pub async fn handle_config_post(
     let form_data = match parse_multipart_form(multipart).await {
         Ok(data) => data,
         Err(e) => {
-            warn!(
-                "[{}] ❌ /config POST 解析multipart数据失败: {}",
-                client_ip, e
-            );
+            warn!("[{}] /config POST 解析multipart数据失败: {}", client_ip, e);
             return HttpResponse::BadRequest()
                 .content_type("text/html; charset=utf-8")
                 .body(&format!(
@@ -276,12 +273,12 @@ pub async fn handle_config_post(
     // 解密token获得管理员密码
     let decrypted_password = match decrypt_secret(auth_token, &state.app_config.encryption_key) {
         Ok(decrypted) => {
-            debug!("[{}] 🔓 /config POST 成功解密token", client_ip);
+            debug!("[{}] /config POST 成功解密token", client_ip);
             decrypted
         }
         Err(e) => {
             warn!(
-                "[{}] ❌ /config POST token解密失败，访问被禁止: {}",
+                "[{}] /config POST token解密失败，访问被禁止: {}",
                 client_ip, e
             );
             return HttpResponse::BadRequest()
@@ -293,7 +290,7 @@ pub async fn handle_config_post(
     // 验证解密后的密码是否与admin_password匹配
     if decrypted_password != state.app_config.admin_password {
         warn!(
-            "[{}] ❌ /config POST 管理员密码验证失败，访问被禁止",
+            "[{}] /config POST 管理员密码验证失败，访问被禁止",
             client_ip
         );
         return HttpResponse::BadRequest()
@@ -301,14 +298,12 @@ pub async fn handle_config_post(
             .body("<h1>错误</h1><p>身份验证失败</p>");
     }
 
-    info!("[{}] 💾 管理员开始保存配置", client_ip);
-
     // 验证新配置格式
     let new_config: crate::models::ClashConfig =
         match serde_yaml_ng::from_str(&form_data.config_content) {
             Ok(config) => config,
             Err(e) => {
-                warn!("[{}] ❌ 配置格式验证失败: {}", client_ip, e);
+                warn!("[{}] 配置格式验证失败: {}", client_ip, e);
                 return HttpResponse::BadRequest()
                     .content_type("text/html; charset=utf-8")
                     .body(&format!(
@@ -322,7 +317,7 @@ pub async fn handle_config_post(
 
     // 保存配置到文件
     if let Err(e) = tokio::fs::write("config/clash.yml", &form_data.config_content).await {
-        error!("[{}] ❌ 保存配置文件失败: {}", client_ip, e);
+        error!("[{}] 保存配置文件失败: {}", client_ip, e);
         return HttpResponse::InternalServerError()
             .content_type("text/html; charset=utf-8")
             .body("<h1>保存失败</h1><p>无法写入配置文件</p>");
@@ -334,7 +329,7 @@ pub async fn handle_config_post(
         *config_guard = new_config;
     }
 
-    info!("[{}] ✅ 配置保存并重载成功", client_ip);
+    info!("[{}] 配置保存并重载成功", client_ip);
 
     // 返回成功页面
     HttpResponse::Ok()
@@ -406,7 +401,7 @@ pub async fn handle_config_reload(req: HttpRequest, state: State<AppState>) -> i
         Some(header) => header,
         None => {
             warn!(
-                "[{}] ❌ /config/reload 缺少Authorization头，访问被禁止",
+                "[{}] /config/reload 缺少Authorization头，访问被禁止",
                 client_ip
             );
             return HttpResponse::NoContent().finish();
@@ -416,7 +411,7 @@ pub async fn handle_config_reload(req: HttpRequest, state: State<AppState>) -> i
     let auth_str = match auth_header.to_str() {
         Ok(s) => s,
         Err(_) => {
-            warn!("[{}] ❌ /config/reload Authorization头格式无效", client_ip);
+            warn!("[{}] /config/reload Authorization头格式无效", client_ip);
             return HttpResponse::NoContent().finish();
         }
     };
@@ -426,7 +421,7 @@ pub async fn handle_config_reload(req: HttpRequest, state: State<AppState>) -> i
         &auth_str[7..] // 去掉"Bearer "前缀
     } else {
         warn!(
-            "[{}] ❌ /config/reload Authorization头缺少Bearer前缀",
+            "[{}] /config/reload Authorization头缺少Bearer前缀",
             client_ip
         );
         return HttpResponse::NoContent().finish();
@@ -436,27 +431,25 @@ pub async fn handle_config_reload(req: HttpRequest, state: State<AppState>) -> i
     let decrypt_plaintext = match decrypt_secret(token, &state.app_config.encryption_key) {
         Ok(decrypted) => decrypted,
         Err(e) => {
-            warn!("[{}] ❌ /config/reload token解密失败: {}", client_ip, e);
+            warn!("[{}] /config/reload token解密失败: {}", client_ip, e);
             return HttpResponse::NoContent().finish();
         }
     };
 
     if decrypt_plaintext != state.app_config.admin_password {
         warn!(
-            "[{}] ❌ /config/reload token验证失败，与管理员密码不符，实际'{}'",
+            "[{}] /config/reload token验证失败，与管理员密码不符，实际'{}'",
             client_ip, decrypt_plaintext
         );
         return HttpResponse::NoContent().finish();
     }
-
-    info!("[{}] 🔄 开始热重载配置文件", client_ip);
 
     // 重新读取clash.yml配置文件
     let clash_config_content = match tokio::fs::read_to_string("config/clash.yml").await {
         Ok(content) => content,
         Err(e) => {
             error!(
-                "[{}] ❌ 热重载失败: 无法读取config/clash.yml - {}",
+                "[{}] 热重载失败: 无法读取config/clash.yml - {}",
                 client_ip, e
             );
             return HttpResponse::InternalServerError()
@@ -470,7 +463,7 @@ pub async fn handle_config_reload(req: HttpRequest, state: State<AppState>) -> i
         Ok(config) => config,
         Err(e) => {
             error!(
-                "[{}] ❌ 热重载失败: config/clash.yml解析错误 - {}",
+                "[{}] 热重载失败: config/clash.yml解析错误 - {}",
                 client_ip, e
             );
             return HttpResponse::InternalServerError()
@@ -485,7 +478,7 @@ pub async fn handle_config_reload(req: HttpRequest, state: State<AppState>) -> i
         *config_guard = new_clash_config;
     }
 
-    info!("[{}] ✅ 配置文件热重载成功", client_ip);
+    info!("[{}] 配置文件热重载成功", client_ip);
 
     HttpResponse::Ok()
         .content_type("text/plain; charset=utf-8")

@@ -15,7 +15,7 @@ async fn main() -> std::io::Result<()> {
     let config_content = match tokio::fs::read_to_string("config/app.yml").await {
         Ok(content) => content,
         Err(e) => {
-            eprintln!("❌ 无法读取配置文件 config/app.yml: {}", e);
+            eprintln!("无法读取配置文件 config/app.yml: {}", e);
             return Err(e);
         }
     };
@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
     let app_config: models::AppConfig = match serde_yaml_ng::from_str(&config_content) {
         Ok(config) => config,
         Err(e) => {
-            eprintln!("❌ 配置文件格式错误: {}", e);
+            eprintln!("配置文件格式错误: {}", e);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 format!("配置文件解析失败: {}", e),
@@ -36,7 +36,7 @@ async fn main() -> std::io::Result<()> {
     let clash_config_content = match tokio::fs::read_to_string("config/clash.yml").await {
         Ok(content) => content,
         Err(e) => {
-            eprintln!("❌ 无法读取配置文件 config/clash.yml: {}", e);
+            eprintln!("无法读取配置文件 config/clash.yml: {}", e);
             return Err(e);
         }
     };
@@ -45,7 +45,7 @@ async fn main() -> std::io::Result<()> {
     let clash_config: models::ClashConfig = match serde_yaml_ng::from_str(&clash_config_content) {
         Ok(config) => config,
         Err(e) => {
-            eprintln!("❌ Clash配置文件格式错误: {}", e);
+            eprintln!("Clash配置文件格式错误: {}", e);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 format!("Clash配置解析失败: {}", e),
@@ -68,7 +68,7 @@ async fn main() -> std::io::Result<()> {
         "trace" => tracing::Level::TRACE,
         _ => {
             eprintln!(
-                "⚠️  无效的日志级别: {}，使用默认级别 info",
+                "无效的日志级别: {}，使用默认级别 info",
                 app_config.log_level
             );
             tracing::Level::INFO
